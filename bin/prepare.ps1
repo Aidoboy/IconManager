@@ -1,4 +1,4 @@
-﻿param([Parameter(Mandatory=$true)][string]$filepathin)
+﻿param([Parameter(Mandatory=$true)][string]$srcfilein, [Parameter(Mandatory=$true)][string]$dest)
 
 function SameImg([string]$file1, [string]$file2){
     $compareresult = magick compare -metric RMSE "$file1" "$file2" NULL: 2>&1
@@ -10,49 +10,59 @@ function SameImg([string]$file1, [string]$file2){
 Function IIf($If, $Right, $Wrong) {If ($If) {$Right} Else {$Wrong}}
 
 Try{
-    $filepath = [System.IO.Path]::GetFullPath((Join-Path (pwd) $filepathin))
+    $filepath = [System.IO.Path]::GetFullPath((Join-Path (pwd) $srcfilein))
 }Catch{#If (!(Test-Path $filepath)){
-    $filepath = $filepathin
+    $srcfile = $srcfilein
 }
 # echo $filepath
 
 #$filename = $filepath.Substring(0, $filepath.Length - 4)
 #$fileext = $filepath.Substring($filepath.Length - 4, 4)
 
-$fileinfo = ([io.fileinfo]$filepath)
-$filename = $fileinfo.basename
+$srcinfo = ([io.fileinfo]$srcfile)
+$srcname = $srcinfo.basename
 # echo $filename
-$fileext = $fileinfo.Extension
+$srcext = $srcinfo.Extension
 # echo $fileinfo.Name
-$filedir = $fileinfo.DirectoryName
+$srcdir = $srcinfo.DirectoryName
 # echo $filedir
 # echo $fileinfo.FullName
 
 #echo $filename $filepath $fileext
 
-If($fileext -Match ".svg") {
-    If (Test-Path "$filedir\$filename.png"){
-        Remove-Item "$filedir\$filename.png"
+$namemod = "[Source]"
+
+If($srcext -Match ".svg") {
+    If (Test-Path "$dest\$srcname$namemod.png"){
+        Remove-Item "$dest\$srcname$namemod.png"
     }
-    "--export-png `"$filedir\$filename.png`" -w 512 `"$filedir\$filename.svg`"`nexit" | inkscape.exe --shell
-    while (!(Test-Path "$filedir\$filename.png")) {
-        # echo "$filedir\$filename.png" $(Test-Path "$filedir\$filename.png")
-        Start-Sleep 1
+    "--export-png `"$dest\$srcname$namemod.png`" -w 512 `"$srcdir\$srcname.svg`"`nexit" | inkscape.exe --shell
+    # echo "`"--export-png `"$dest\$srcname.png`" -w 512 `"$srcdir\$srcname.svg`"`nexit`" | inkscape.exe --shell"
+    # echo  $($($namemod -replace "\[", "``[") -replace "\]", "``]")
+    
+    while (!(Test-Path "$dest\$srcname$($($namemod -replace "\[", "``[") -replace "\]", "``]").png")) {
+        Start-Sleep .5
     }
 }
-If($fileext -Match ".webp") {
-    If (Test-Path "$filedir\$filename.png"){
-        Remove-Item "$filedir\$filename.png"
+ElseIf($srcext -Match ".webp") {
+    If (Test-Path "$dest\$srcname$namemod.png"){
+        Remove-Item "$dest\$srcname$namemod.png"
     }
-    magick convert "$filedir\$filename.webp" "PNG32:$filedir\$filename.png"
+    magick convert "$srcdir\$srcname.webp" "PNG32:$dest\$srcname$namemod.png"
+}
+Else{
+    Copy-Item "$srcdir\$srcname.png" "$dest\$srcname$namemod.png"
 }
 
-magick convert "$filedir\$filename.png" -trim "PNG32:$filedir\$filename[Magick].png"
+$filename = $srcname
+$filedir = $dest
 
-If(SameImg "$filedir\$filename.png" "$filedir\$filename[Magick].png"){
+
+magick convert "$filedir\$filename$namemod.png" -trim "PNG32:$filedir\$filename[Magick].png"
+
+If(SameImg "$filedir\$filename$namemod.png" "$filedir\$filename[Magick].png"){
     # echo "$filedir\$filename[Magick].png"
     Remove-Item -LiteralPath "$filedir\$filename[Magick].png"
-    $namemod = ""
 }Else{
     $namemod = "[Magick]"
 }
@@ -67,10 +77,10 @@ if($png.Height -gt $png.Width){
 }
 
 if($png.Height -eq $png.Width){
-    echo "Already square"
+    # echo "Already square"
     $squaremod = $namemod
 }else{
-    echo "Not square"
+    # echo "Not square"
     $squaremod = "[Square]"
     $dimensions = [string]$size + "x" + [string]$size
     magick convert "$filedir\$filename$namemod.png" -background transparent -gravity center -resize $dimensions -extent $dimensions "PNG32:$filedir\$filename$squaremod.png"
