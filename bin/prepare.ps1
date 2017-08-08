@@ -36,7 +36,8 @@ If($srcext -Match ".svg") {
     If (Test-Path "$dest\$srcname$namemod.png"){
         Remove-Item "$dest\$srcname$namemod.png"
     }
-    "--export-png `"$dest\$srcname$namemod.png`" -w 512 `"$srcdir\$srcname.svg`"`nexit" | inkscape.exe --shell
+    # "--export-png `"$dest\$srcname$namemod.png`" -w 512 `"$srcdir\$srcname.svg`"`nexit" | inkscape.exe --shell
+    Invoke-Command {inkscape -z -e $dest\$srcname$namemod.png -w 512 $srcdir\$srcname.svg} >$null 2>&1 # -h 512
     # echo "`"--export-png `"$dest\$srcname.png`" -w 512 `"$srcdir\$srcname.svg`"`nexit`" | inkscape.exe --shell"
     # echo  $($($namemod -replace "\[", "``[") -replace "\]", "``]")
     

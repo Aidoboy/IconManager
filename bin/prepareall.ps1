@@ -6,11 +6,14 @@ invoke-expression -Command "$dir\bin\clean.ps1"
 
 robocopy $dir\input $dir\output /e /xf *.*
 
-$enablesvg = $FALSE
+$enablepng = $TRUE
+$enablesvg = $TRUE
 
 $filecount = 0
-Get-ChildItem -Path (Join-Path $dir input\) -Filter *.png -Recurse -File | Where-Object {$_.Name -match "[^\]]+.png"} | ForEach-Object {
-    $filecount = $filecount + 1
+If($enablepng){
+    Get-ChildItem -Path (Join-Path $dir input\) -Filter *.png -Recurse -File | Where-Object {$_.Name -match "[^\]]+.png"} | ForEach-Object {
+        $filecount = $filecount + 1
+    }
 }
 If($enablesvg){
     Get-ChildItem -Path (Join-Path $dir input\) -Filter *.svg -Recurse -File | ForEach-Object {
@@ -22,20 +25,22 @@ Get-ChildItem -Path (Join-Path $dir input\) -Filter *.webp -Recurse -File | ForE
 }
 
 $donecount = 0
-Get-ChildItem -Path (Join-Path $dir input\) -Filter *.png -Recurse -File | Where-Object {$_.Name -match "[^\]]+.png"} | ForEach-Object {
-    Write-Progress -Activity "$(([io.fileinfo]$_).basename -replace "input", "output")" -Status "$((Div $donecount $filecount) * 100)% Complete:" -PercentComplete $((Div $donecount $filecount) * 100);
-    invoke-expression -Command "$dir\bin\prepare.ps1 `"$($_.FullName)`" `"$(([io.fileinfo]$_).DirectoryName -replace "input", "output")`""
-    $donecount = $donecount + 1
+If($enablepng){
+    Get-ChildItem -Path (Join-Path $dir input\) -Filter *.png -Recurse -File | Where-Object {$_.Name -match "[^\]]+.png"} | ForEach-Object {
+        Write-Progress -Activity "$(([io.fileinfo]$_).basename -replace "input", "output")" -Status "$([math]::Round((Div $donecount $filecount) * 100))% Complete:" -PercentComplete $((Div $donecount $filecount) * 100);
+        invoke-expression -Command "$dir\bin\prepare.ps1 `"$($_.FullName)`" `"$(([io.fileinfo]$_).DirectoryName -replace "input", "output")`""
+        $donecount = $donecount + 1
+    }
 }
 If($enablesvg){
     Get-ChildItem -Path (Join-Path $dir input\) -Filter *.svg -Recurse -File | ForEach-Object {
-        Write-Progress -Activity "$(([io.fileinfo]$_).basename -replace "input", "output")" -Status "$((Div $donecount $filecount) * 100)% Complete:" -PercentComplete $((Div $donecount $filecount) * 100);
+        Write-Progress -Activity "$(([io.fileinfo]$_).basename -replace "input", "output")" -Status "$([math]::Round((Div $donecount $filecount) * 100))% Complete:" -PercentComplete $((Div $donecount $filecount) * 100);
         invoke-expression -Command "$dir\bin\prepare.ps1 `"$($_.FullName)`" `"$(([io.fileinfo]$_).DirectoryName -replace "input", "output")`""
         $donecount = $donecount + 1
     }
 }
 Get-ChildItem -Path (Join-Path $dir input\) -Filter *.webp -Recurse -File | ForEach-Object {
-    Write-Progress -Activity "$(([io.fileinfo]$_).basename -replace "input", "output")" -Status "$((Div $donecount $filecount) * 100)% Complete:" -PercentComplete $((Div $donecount $filecount) * 100);
+    Write-Progress -Activity "$(([io.fileinfo]$_).basename -replace "input", "output")" -Status "$([math]::Round((Div $donecount $filecount) * 100))% Complete:" -PercentComplete $((Div $donecount $filecount) * 100);
     invoke-expression -Command "$dir\bin\prepare.ps1 `"$($_.FullName)`" `"$(([io.fileinfo]$_).DirectoryName -replace "input", "output")`""
     $donecount = $donecount + 1
 }
