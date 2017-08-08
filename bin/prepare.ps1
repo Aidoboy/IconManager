@@ -92,6 +92,43 @@ if($png.Height -eq $png.Width){
 # echo $png.HorizontalResolution
 # echo $png.VerticalResolution
 
+$minBorder = 0;
+$minResize = 1;
+$resize = 2;
+$extent = 3;
+
+$sizes = @{
+    "Small"         = @("0",   "70",  "70x70",   "70x70");
+    "Medium"        = @("70",  "150", "150x150", "150x150");
+    "Large"         = @("150", "310", "310x310", "310x310");
+    "Wide"          = @("70",  "150", "310x150", "310x150");
+    "Wide2"         = @("150", "310", "310",     "310x150");
+    "BorderSmall"   = @("0",   "60",  "60x60",   "70x70");
+    "BorderMedium"  = @("60",  "140", "140x140", "150x150");
+    "BorderLarge"   = @("140", "300", "300x300", "310x310");
+    "BorderWide"    = @("60",  "140", "300x140", "310x150");
+    "BorderWide2"   = @("140", "300", "300",     "310x150");
+}
+
+$sizes.keys | % {
+    $key = $_
+    $value = $sizes.Item($key)
+    # echo $key $value
+    if($size -ge $sizes[$minResize]){
+        magick convert "$filedir\$filename$namemod.png" -background transparent -gravity center -resize $value[$resize] -extent $value[$extent] "PNG32:$filedir\$filename[$key].png"
+    }elseif($size -ge $sizes[$minBorder]){
+        magick convert "$filedir\$filename$namemod.png" -background transparent -gravity center                         -extent $value[$extent] "PNG32:$filedir\$filename[$key].png"
+    }
+}
+
+If(SameImg "$filedir\$filename[Wide].png" "$filedir\$filename[Wide2].png"){
+    Remove-Item -LiteralPath "$filedir\$filename[Wide2].png"
+}
+If(SameImg "$filedir\$filename[BorderWide].png" "$filedir\$filename[BorderWide2].png"){
+    Remove-Item -LiteralPath "$filedir\$filename[BorderWide2].png"
+}
+
+<#
 if($size -gt 70){
     magick convert "$filedir\$filename$namemod.png" -background transparent -gravity center -resize 70x70 -extent 70x70 "PNG32:$filedir\$filename[Small].png"
     if($size -gt 150){
@@ -123,3 +160,4 @@ $icosizes = ""
 }
 $icosizes += "16"
 magick convert "$filedir\$filename$squaremod.png" -define icon:auto-resize=$icosizes "$filedir\$filename.ico"
+#>
