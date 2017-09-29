@@ -36,13 +36,14 @@ If($srcext -Match ".svg") {
     If (Test-Path "$dest\$srcname$namemod.png"){
         Remove-Item "$dest\$srcname$namemod.png"
     }
-    "--export-png `"$dest\$srcname$namemod.png`" -w 512 `"$srcdir\$srcname.svg`"`nexit" | inkscape.exe --shell
+    "--export-png `"$dest\$srcname$namemod.png`" -w 512 `"$srcdir\$srcname.svg`"`nexit" | inkscape.exe --shell | out-null
     # echo "`"--export-png `"$dest\$srcname.png`" -w 512 `"$srcdir\$srcname.svg`"`nexit`" | inkscape.exe --shell"
     # echo  $($($namemod -replace "\[", "``[") -replace "\]", "``]")
     
-    while (!(Test-Path "$dest\$srcname$($($namemod -replace "\[", "``[") -replace "\]", "``]").png")) {
-        Start-Sleep .5
-    }
+    #while (!(Test-Path "$dest\$srcname$($($namemod -replace "\[", "``[") -replace "\]", "``]").png")) {
+    #    Start-Sleep .5
+    #}
+    #Start-Sleep 5
 }
 ElseIf($srcext -Match ".webp") {
     If (Test-Path "$dest\$srcname$namemod.png"){
@@ -127,6 +128,16 @@ If(SameImg "$filedir\$filename[Wide].png" "$filedir\$filename[Wide2].png"){
 If(SameImg "$filedir\$filename[BorderWide].png" "$filedir\$filename[BorderWide2].png"){
     Remove-Item -LiteralPath "$filedir\$filename[BorderWide2].png"
 }
+
+$icosizes = ""
+@(256,192,128,96,64,48,32,24) | Foreach-Object {
+    if($_ -le $size){
+        $icosizes += $_
+        $icosizes += ","
+    }
+}
+$icosizes += "16"
+magick convert "$filedir\$filename$squaremod.png" -define icon:auto-resize=$icosizes "$filedir\$filename.ico"
 
 <#
 if($size -gt 70){
