@@ -36,8 +36,7 @@ If($srcext -Match ".svg") {
     If (Test-Path "$dest\$srcname$namemod.png"){
         Remove-Item "$dest\$srcname$namemod.png"
     }
-    # "--export-png `"$dest\$srcname$namemod.png`" -w 512 `"$srcdir\$srcname.svg`"`nexit" | inkscape.exe --shell
-    Invoke-Command {inkscape -z -e $dest\$srcname$namemod.png -w 512 $srcdir\$srcname.svg} >$null 2>&1 # -h 512
+    "--export-png `"$dest\$srcname$namemod.png`" -w 512 `"$srcdir\$srcname.svg`"`nexit" | inkscape.exe --shell | out-null
     # echo "`"--export-png `"$dest\$srcname.png`" -w 512 `"$srcdir\$srcname.svg`"`nexit`" | inkscape.exe --shell"
     # echo  $($($namemod -replace "\[", "``[") -replace "\]", "``]")
     
@@ -98,28 +97,33 @@ $minBorder = 0;
 $minResize = 1;
 $resize = 2;
 $extent = 3;
+$gravity = 4;
 
 $sizes = @{
-    "Small"         = @("0",   "70",  "70x70",   "70x70");
-    "Medium"        = @("70",  "150", "150x150", "150x150");
-    "Large"         = @("150", "310", "310x310", "310x310");
-    "Wide"          = @("70",  "150", "310x150", "310x150");
-    "Wide2"         = @("150", "310", "310",     "310x150");
-    "BorderSmall"   = @("0",   "60",  "60x60",   "70x70");
-    "BorderMedium"  = @("60",  "140", "140x140", "150x150");
-    "BorderLarge"   = @("140", "300", "300x300", "310x310");
-    "BorderWide"    = @("60",  "140", "300x140", "310x150");
-    "BorderWide2"   = @("140", "300", "300",     "310x150");
+    "Small"         = @("0",   "70",  "70x70",   "70x70",   "center");
+    "Medium"        = @("70",  "150", "150x150", "150x150", "center");
+    "Large"         = @("150", "310", "310x310", "310x310", "center");
+    "Wide"          = @("70",  "150", "310x150", "310x150", "center");
+    "Wide2"         = @("150", "310", "310",     "310x150", "center");
+    "Wide3"         = @("150", "310", "310",     "310x150", "north");
+    "BorderSmall"   = @("0",   "63",  "63x63",   "70x70",   "center");
+    "BorderMedium"  = @("63",  "135", "135x135", "150x150", "center");
+    "BorderLarge"   = @("135", "279", "279x279", "310x310", "center");
+    "BorderWide"    = @("63",  "135", "279x135", "310x150", "center");
+    "BorderWide2"   = @("135", "279", "279",     "310x150", "center");
+    "BorderWide3"   = @("135", "279", "279",     "310x150", "north");
 }
 
 $sizes.keys | % {
     $key = $_
     $value = $sizes.Item($key)
-    # echo $key $value
-    if($size -ge $sizes[$minResize]){
-        magick convert "$filedir\$filename$namemod.png" -background transparent -gravity center -resize $value[$resize] -extent $value[$extent] "PNG32:$filedir\$filename[$key].png"
-    }elseif($size -ge $sizes[$minBorder]){
-        magick convert "$filedir\$filename$namemod.png" -background transparent -gravity center                         -extent $value[$extent] "PNG32:$filedir\$filename[$key].png"
+    #echo $key $value
+    #echo "Size: " $size $value[$minResize]
+    #echo $($size -ge $value[$minResize])
+    if($size -ge $value[$minResize]){
+        magick convert "$filedir\$filename$namemod.png" -background transparent -gravity $value[$gravity] -resize $value[$resize] -extent $value[$extent] "PNG32:$filedir\$filename[$key].png"
+    }elseif($size -ge $value[$minBorder]){
+        magick convert "$filedir\$filename$namemod.png" -background transparent -gravity $value[$gravity]                         -extent $value[$extent] "PNG32:$filedir\$filename[$key].png"
     }
 }
 
@@ -128,6 +132,12 @@ If(SameImg "$filedir\$filename[Wide].png" "$filedir\$filename[Wide2].png"){
 }
 If(SameImg "$filedir\$filename[BorderWide].png" "$filedir\$filename[BorderWide2].png"){
     Remove-Item -LiteralPath "$filedir\$filename[BorderWide2].png"
+}
+If(SameImg "$filedir\$filename[Wide].png" "$filedir\$filename[Wide3].png"){
+    Remove-Item -LiteralPath "$filedir\$filename[Wide3].png"
+}
+If(SameImg "$filedir\$filename[BorderWide].png" "$filedir\$filename[BorderWide3].png"){
+    Remove-Item -LiteralPath "$filedir\$filename[BorderWide3].png"
 }
 
 $icosizes = ""
