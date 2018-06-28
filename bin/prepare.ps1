@@ -100,6 +100,7 @@ $extent = 3;
 $gravity = 4;
 
 $sizes = @{
+    "Favicon"       = @("0",   "16",  "16x16",   "16x16",   "center");
     "Small"         = @("0",   "70",  "70x70",   "70x70",   "center");
     "Medium"        = @("70",  "150", "150x150", "150x150", "center");
     "Large"         = @("150", "310", "310x310", "310x310", "center");
@@ -121,9 +122,9 @@ $sizes.keys | % {
     #echo "Size: " $size $value[$minResize]
     #echo $($size -ge $value[$minResize])
     if($size -ge $value[$minResize]){
-        magick convert "$filedir\$filename$namemod.png" -background transparent -gravity $value[$gravity] -resize $value[$resize] -extent $value[$extent] "PNG32:$filedir\$filename[$key].png"
+        magick convert "$filedir\$filename$namemod.png" -background transparent -gravity $value[$gravity] -resize $value[$resize] -filter lanczos -extent $value[$extent] "PNG32:$filedir\$filename[$key].png"
     }elseif($size -ge $value[$minBorder]){
-        magick convert "$filedir\$filename$namemod.png" -background transparent -gravity $value[$gravity]                         -extent $value[$extent] "PNG32:$filedir\$filename[$key].png"
+        magick convert "$filedir\$filename$namemod.png" -background transparent -gravity $value[$gravity]                                         -extent $value[$extent] "PNG32:$filedir\$filename[$key].png"
     }
 }
 

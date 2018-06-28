@@ -17,7 +17,7 @@ If($enablepng){
 }
 If($enablesvg){
     Get-ChildItem -Path (Join-Path $dir input\) -Filter *.svg -Recurse -File | ForEach-Object {
-        $filecount = $filecount + 1
+        $filecount = $filecount + 2
     }
 }
 Get-ChildItem -Path (Join-Path $dir input\) -Filter *.webp -Recurse -File | ForEach-Object {
@@ -36,7 +36,7 @@ If($enablesvg){
     Get-ChildItem -Path (Join-Path $dir input\) -Filter *.svg -Recurse -File | ForEach-Object {
         Write-Progress -Activity "$(([io.fileinfo]$_).basename -replace "input", "output")" -Status "$([math]::Round((Div $donecount $filecount) * 100))% Complete:" -PercentComplete $((Div $donecount $filecount) * 100);
         invoke-expression -Command "$dir\bin\prepare.ps1 `"$($_.FullName)`" `"$(([io.fileinfo]$_).DirectoryName -replace "input", "output")`""
-        $donecount = $donecount + 1
+        $donecount = $donecount + 2
     }
 }
 Get-ChildItem -Path (Join-Path $dir input\) -Filter *.webp -Recurse -File | ForEach-Object {
